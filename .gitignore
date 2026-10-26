@@ -9,7 +9,8 @@ venv/
 ENV/
 build/
 develop-eggs/
-dist/
+/dist/
+!frontend/dist/**
 downloads/
 eggs/
 .eggs/
@@ -39,7 +40,7 @@ htmlcov/
 # Node / Frontend
 node_modules/
 frontend/node_modules/
-frontend/dist/
+# frontend/dist/ (un-ignored so Render Python service can serve the responsive frontend bundle)
 frontend/dist-ssr/
 *.local
 

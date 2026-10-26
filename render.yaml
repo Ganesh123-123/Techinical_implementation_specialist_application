@@ -1,4 +1,7 @@
 services:
+  # -------------------------------------------------------------------------
+  # 1. FastAPI Backend Service (Python Web Service)
+  # -------------------------------------------------------------------------
   - type: web
     name: sunrise-interiors-api
     runtime: python
@@ -9,3 +12,19 @@ services:
         value: sqlite:///./sunrise_interiors.db
       - key: CORS_ORIGINS
         value: "*"
+
+  # -------------------------------------------------------------------------
+  # 2. React + Vite Frontend (Responsive Global Static Site CDN)
+  # -------------------------------------------------------------------------
+  - type: web
+    name: sunrise-interiors-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://sunrise-interiors-api.onrender.com

@@ -8,15 +8,17 @@ import {
   ExternalLink,
   ChevronDown,
   Sparkles,
+  Menu,
 } from 'lucide-react';
 import { api, formatDate } from '../services/api';
 import { Notification } from '../types';
 
 interface NavbarProps {
   onSearchGlobal?: (term: string) => void;
+  onToggleSidebar?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onSearchGlobal }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onSearchGlobal, onToggleSidebar }) => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
@@ -79,22 +81,31 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchGlobal }) => {
   }).format(new Date());
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 py-3.5 flex items-center justify-between">
-      {/* Search Input */}
-      <div className="flex items-center gap-4 flex-1 max-w-md">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
+      {/* Search & Mobile Hamburger */}
+      <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-xs sm:max-w-md">
+        <button
+          type="button"
+          onClick={onToggleSidebar}
+          className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer shrink-0 -ml-1.5"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
         <div className="relative w-full">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search projects, client names, invoices..."
+            placeholder="Search projects, clients..."
             onChange={(e) => onSearchGlobal?.(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-400 text-slate-700"
+            className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all placeholder:text-slate-400 text-slate-700"
           />
         </div>
       </div>
 
       {/* Right Controls */}
-      <div className="flex items-center gap-4" ref={dropdownRef}>
+      <div className="flex items-center gap-2 sm:gap-4" ref={dropdownRef}>
         {/* Date Display */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl text-xs font-medium text-slate-600 border border-slate-200/70">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -120,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onSearchGlobal }) => {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-84 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
               <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <h4 className="font-semibold text-sm text-slate-900">Notifications</h4>

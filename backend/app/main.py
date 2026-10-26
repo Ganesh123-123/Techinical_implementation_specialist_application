@@ -25,11 +25,19 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+import os
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 # Configure CORS
+origins = settings.cors_origin_list
+is_wildcard = "*" in origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_origin_regex=r"https://.*\.onrender\.com" if not is_wildcard else None,
+    allow_credentials=False if is_wildcard else True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -46,7 +54,11 @@ app.include_router(dashboard.router)
 app.include_router(cleaning.router)
 
 
+from fastapi import HTTPException
+from fastapi.responses import FileResponse, JSONResponse
+
 @app.get("/api/health")
+@app.head("/api/health")
 def health_check():
     return {
         "status": "healthy",
@@ -55,10 +67,48 @@ def health_check():
     }
 
 
-@app.get("/")
-def root():
-    return {
-        "message": "Welcome to Sunrise Interiors – Project & Workflow Management API",
-        "docs": "/docs",
-        "health": "/api/health",
-    }
+# Static frontend serving (if frontend is built in frontend/dist)
+frontend_dist = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "frontend",
+    "dist",
+)
+
+if os.path.isdir(frontend_dist):
+    assets_path = os.path.join(frontend_dist, "assets")
+    if os.path.isdir(assets_path):
+        app.mount("/assets", StaticFiles(directory=assets_path), name="frontend_assets")
+
+    @app.get("/")
+    @app.head("/")
+    async def serve_root():
+        index_file = os.path.join(frontend_dist, "index.html")
+        if os.path.isfile(index_file):
+            return FileResponse(index_file)
+        return JSONResponse({"status": "healthy", "service": "Sunrise Interiors"})
+
+    @app.get("/{full_path:path}")
+    @app.head("/{full_path:path}")
+    async def serve_spa_frontend(full_path: str):
+        # If request is intended for an API or Docs route that didn't match:
+        if (
+            full_path.startswith("api")
+            or full_path.startswith("docs")
+            or full_path.startswith("redoc")
+            or full_path.startswith("openapi.json")
+        ):
+            raise HTTPException(status_code=404, detail="API endpoint not found")
+
+        candidate = os.path.join(frontend_dist, full_path)
+        if full_path and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+else:
+    @app.get("/")
+    @app.head("/")
+    def root():
+        return {
+            "message": "Welcome to Sunrise Interiors – Project & Workflow Management API",
+            "docs": "/docs",
+            "health": "/api/health",
+        }
