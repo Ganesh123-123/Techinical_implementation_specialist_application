@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: sunrise-interiors-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///./sunrise_interiors.db
+      - key: CORS_ORIGINS
+        value: "*"
